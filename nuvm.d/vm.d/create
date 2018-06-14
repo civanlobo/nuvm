@@ -1,0 +1,97 @@
+#!/bin/bash 
+
+function usage() { 
+  echo "Usage"
+  echo "-o | set os type"
+  echo "-i | set image to use"
+  echo "-H | set vm hostname"
+  echo "-m | set vm memory"
+  echo "-c | set vm cpus"
+  echo "-p | set ssh port forwarding, example 2222"
+  echo "-C | set cloud-init template"
+}
+
+function create_cloud_init(){
+  mkdir -p "$nuvm_path/vms/$hostname"
+  meta_data="$nuvm_path/vms/$hostname/meta-data"
+  user_data="$nuvm_path/vms/$hostname/user-data"
+  cp $nuvm_path/cloud-init/$cloud_init/meta-data $meta_data
+  cp $nuvm_path/cloud-init/$cloud_init/user-data $user_data
+  sed -i "s/HOSTNAME/$hostname/g" "$meta_data"
+  sed -i "s/HOSTNAME/$hostname/g" "$user_data"
+  genisoimage -quiet -output $cloud_init_image -volid cidata -joliet -r $meta_data $user_data
+}
+
+function create_vm(){
+  source "$nuvm_path/nuvm.d/helpers.d/download.sh"
+  download "$image_name" "$hostname"
+  echo "Creating VM"
+  VBoxManage createvm --name "$hostname" --ostype "$ostype" --register
+  VBoxManage modifyvm $hostname --memory $memory --cpus $cpus --ioapic on 
+  VBoxManage modifyvm $hostname --mouse usbtablet
+  VBoxManage modifyvm $hostname --natpf1 "guestssh,tcp,,$port,,22"
+  VBoxManage storagectl $hostname --name "SATA Controller" --add sata --portcount 1
+  VBoxManage storagectl $hostname --name "IDE Controller" --add ide --controller PIIX4
+  VBoxManage storageattach $hostname --storagectl "SATA Controller" --port 0 --device 0 --type hdd  --medium $vdi_image
+  VBoxManage storageattach $hostname --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium $cloud_init_image
+  VBoxManage startvm $hostname --type headless
+} 
+
+if [[ $# -eq 0 ]];then
+  usage
+  exit 1
+fi
+
+memory=1024
+cpus=4
+port=2222
+cloud_init="pwning"
+
+while getopts 'i:H:o:m:c:p:C:h' opt; do
+ case "$opt" in
+    i)
+      image_name="$OPTARG"
+    ;;
+    H)
+      hostname="$OPTARG"
+    ;;
+    o)
+      ostype="$OPTARG"
+    ;;
+    m)
+      memory="$OPTARG"
+    ;;
+    c)
+      cpus="$OPTARG"
+    ;;
+    p)
+      port="$OPTARG"
+    ;;
+    C)
+      cloud_init="$OPTARG"
+    ;;
+    h)
+      usage
+      exit
+    ;;
+    ?)
+      usage 
+      exit 1
+    ;;
+  esac
+done
+
+echo "VM Configuration"
+echo "|--Hostname: $hostname"
+echo "|--Image: $image_name"
+echo "|--OS Type: $ostype"
+echo "|--CPUs: $cpus"
+echo "|--Memory: $memory"
+echo "|--SSH Port Forwarding: $port"
+echo
+
+vdi_image="$nuvm_path/vms/$hostname/$hostname.vdi"
+cloud_init_image="$nuvm_path/vms/$hostname/$hostname.iso"
+
+create_cloud_init
+create_vm

@@ -1,0 +1,3 @@
+#!/bin/bash -u
+
+cat $nuvm_path/nuvm.d/.config/images.json | jq -r '. | to_entries | .[] | .key'

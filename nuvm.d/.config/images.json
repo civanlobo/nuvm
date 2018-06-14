@@ -1,0 +1,5 @@
+{
+  "debian-9": "http://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.raw",
+  "debian-8": "http://cdimage.debian.org/cdimage/openstack/current-8/debian-8-openstack-amd64.raw",
+  "ubuntu-bionic":"http://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
+}

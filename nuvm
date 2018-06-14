@@ -1,0 +1,71 @@
+#!/bin/bash -u
+# vim: filetype=sh
+
+IFS=$'\n\t'
+
+export nuvm_path=$(dirname $(readlink -f $0))
+list_commands="find {} -maxdepth 1 -type f -executable | grep -v '\.sh$' | sed 's#{}/#|--#'"
+
+function contexts() {
+  find $nuvm_path/nuvm.d -maxdepth 1 -type d -iname "*.d" | \
+    grep -v helpers | \
+    sort | \
+    tail -n +2 | \
+    xargs -I {} basename {} | \
+    cut -d . -f 1
+}
+
+function available_commands() {
+  echo "Available commands"
+  bash -c "$(echo $list_commands | sed "s#{}#$script#g")"
+  exit 2
+}
+
+if [ $# -lt 1 ]; then
+  contexts | \
+    xargs -I {} echo "$nuvm_path/nuvm.d/{}.d" | \
+    xargs -I {} /usr/bin/env bash -c "basename $(echo {} | tr / \|) | sed 's/\.d$//'; $list_commands"
+
+  exit 1
+fi
+
+script_start=$1
+candidates=$(find $nuvm_path/nuvm.d -maxdepth 1 -type d -iname "$script_start*.d")
+
+n_candidates=$(echo "$candidates" | wc -l)
+
+if [ -z "$candidates" ]; then
+  echo "No context matches $script_start"
+  echo "Available contexts:"
+
+  contexts
+
+  exit 3
+fi
+
+if [ $n_candidates -gt 1 ]; then
+  echo "Did you mean:"
+  for candidate in $candidates; do
+    echo "  - $(basename $candidate | cut -d . -f 1)"
+  done
+  exit 2
+fi
+
+script=${candidates[0]}
+
+if [ $# -lt 2 ]; then
+  available_commands
+fi
+
+if [ ! -f "$script/$2" ]; then
+  context=$(basename $(echo $script) | sed 's/\.d$//')
+  echo "Command $2 does not exists at context $context"
+
+  available_commands
+fi
+
+cmd="$script/$2"
+shift
+shift
+
+bash "$cmd" "$@"

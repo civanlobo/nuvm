@@ -1,0 +1,6 @@
+#!/bin/bash
+
+hostname=$1
+VBoxManage controlvm $hostname poweroff
+VBoxManage unregistervm $hostname --delete
+rm -Rf $nuvm_path/vms/$hostname

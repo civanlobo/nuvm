@@ -1,0 +1,3 @@
+#!/bin/bash
+hostname="$1"
+VBoxManage showvminfo $hostname --machinereadable
