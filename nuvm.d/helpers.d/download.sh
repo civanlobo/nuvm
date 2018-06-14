@@ -19,8 +19,8 @@ function convert(){
   cp $nuvm_path/images/$image_name.raw $vm_path/$hostname.raw
   raw_image=$vm_path/$hostname.raw
   vdi_image=$vm_path/$hostname.vdi
-  #qemu-img resize $raw_image +"$resize"G
-  VBoxManage convertdd $raw_image $vdi_image --format VDI
+  qemu-img convert -O vdi $raw_image $vdi_image
+  #VBoxManage convertdd $raw_image $vdi_image --format VDI
   rm $raw_image
 }
 

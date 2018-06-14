@@ -1,0 +1,39 @@
+#cloud-config
+
+# Hostname management
+preserve_hostname: False
+hostname: HOSTNAME
+fqdn: HOSTNAME.DOMAIN
+
+# Remove cloud-init when finished with it
+runcmd:
+  - [ ifdown, eth0 ]
+  - [ ifup, eth0 ]
+
+# Configure where output will go
+output:
+  all: ">> /var/log/cloud-init.log"
+
+# configure interaction with ssh server
+ssh_svcname: ssh
+ssh_deletekeys: True
+ssh_genkeytypes: ['rsa', 'ecdsa', 'ed25519']
+
+users:
+  - default
+  - name: nuvm
+    gecos: nuvm
+    primary-group: nuvm
+    groups: users
+    ssh-import-id: nuvm
+    lock-passwd: false
+    passwd: $1$SaltSalt$YhgRYajLPrYevs14poKBQ0
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/HYPKHbkel94iU6N2InaLjAhcNzFRIwwS10bfdhyeSBcMBsH7qWaQYha+Hx2t9V1RcLgrqfzmvo/Z/wobNPklx+OWEEC3aHLg1suQwA+4VYGWwvXFIvsrGd9rnOIAU2nzY2u+1TQZZ+9FaAaTTwo/gCCZi/E2EDAqsqxSitHm/pe0P0rbHvXZvag+H0rRrQ+fMlKH5YzLGKlTtrw0de3h6leYG48dGGYWQcVn8QKuk2G7SEyTcreOicO2BX8aBYU6ZURh8fyfb3ssShhKKUzc2Qn5tPmxO1xoS7sRhFH2hSaPthY4SQRYinCGlEE4f2Y6muuAOWNVL3dwmBkq0rocqvLzCk3g29fnLWF3r6qGsIDJrs3BXSDZrCBbEhln674IxEFtIWxCASwS0hWs4B7VKumL8v3shCWPO0+fhvxcq/6rEdNDKNG95PfDAGfelPMOh6ofziI8aV5h+bI0VMuwNgQ9KxcBS3AhSYjj8PYGGX4AbEOvscZBLX9lLrL4jergzVHeBt2G8eYm6O1d4eLDdrjKIQiF8Bq7VKY7r5D60FDu8aJf1JTCDF5v4vRwkBwwuUpWQemkw0oQO41jHn4rYa/h2pfXVk5XrwO2AIXUVa5jJCI4O/psp40MWhzzxndZ0ZDLO/ZEYdCP0OC1mtcfM39PZdd61uAAUpcZ8dEXiw==
+
+growpart:
+  mode: auto
+  devices: ['/']
+  ignore_growroot_disabled: false

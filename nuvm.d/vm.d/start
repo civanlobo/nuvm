@@ -1,0 +1,4 @@
+#!/bin/bash
+
+hostname=$1
+VBoxManage startvm $hostname --type headless
