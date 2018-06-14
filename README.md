@@ -4,18 +4,21 @@ Virtualbox cli manager
 
 # Dependencies
 
+<pre>
 VirtualBox
 genisoimage
 axel
+</pre>
 
 # Configure
 
+```bash
 sudo ln -s -f full/path/nuvm /usr/local/bin
+```
 
 # Usage
-
-<pre>
-$nuvm
+```bash
+$ nuvm
 list
 |--os
 |--images
@@ -25,4 +28,4 @@ vm
 |--create
 |--delete
 |--inspect
-</pre>
+```
